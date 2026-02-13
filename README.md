@@ -169,3 +169,7 @@ bunx tsc --noEmit
 # Run tests
 bun test
 ```
+
+## Skill
+
+The repository includes a reusable skill (`skill/SKILL.md`) that teaches AI coding agents how to use `reps` commands. A packaged `reps.skill` file is also provided for distribution.
