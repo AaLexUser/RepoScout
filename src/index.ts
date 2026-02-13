@@ -1,3 +1,4 @@
+#!/usr/bin/env bun
 import { Command } from 'commander';
 import { addCommand } from './commands/add';
 import { askCommand } from './commands/ask';

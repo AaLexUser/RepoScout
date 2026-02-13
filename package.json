@@ -1,8 +1,9 @@
 {
 	"name": "reposcout",
-	"module": "index.ts",
 	"type": "module",
-	"private": true,
+	"bin": {
+		"reps": "src/index.ts"
+	},
 	"scripts": {
 		"reps": "bun run src/index.ts",
 		"format": "prettier --write .",
