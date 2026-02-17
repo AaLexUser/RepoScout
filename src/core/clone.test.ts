@@ -107,4 +107,30 @@ describe('ensureMaterialized', () => {
 			await rm(tempRoot, { recursive: true, force: true });
 		}
 	});
+
+	test('re-clones when destination exists but is not a git repository', async (): Promise<void> => {
+		const tempRoot = await mkdtemp(path.join(os.tmpdir(), 'reps-clone-test-'));
+		try {
+			const sourcePath = path.join(tempRoot, 'source-git-repo');
+			const reposDir = path.join(tempRoot, '.reps', 'repos');
+			const destPath = path.join(reposDir, 'my-git-repo');
+			await mkdir(sourcePath, { recursive: true });
+			await mkdir(destPath, { recursive: true });
+			await Bun.write(path.join(destPath, 'STALE.txt'), 'stale\n');
+
+			await Bun.$`git init -b main ${sourcePath}`;
+			await Bun.write(path.join(sourcePath, 'README.md'), 'hello\n');
+			await Bun.$`git -C ${sourcePath} add README.md`;
+			await Bun.$`git -C ${sourcePath} -c user.name=test -c user.email=test@example.com commit -m init`;
+
+			const entry = gitEntry('my-git-repo', sourcePath, 'main');
+			const dest = await ensureMaterialized(entry, reposDir);
+
+			expect(dest).toBe(destPath);
+			expect(await Bun.file(path.join(dest, 'README.md')).text()).toBe('hello\n');
+			expect(await Bun.file(path.join(dest, 'STALE.txt')).exists()).toBe(false);
+		} finally {
+			await rm(tempRoot, { recursive: true, force: true });
+		}
+	});
 });
