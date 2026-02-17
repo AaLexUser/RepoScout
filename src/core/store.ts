@@ -56,6 +56,13 @@ export type ScopedRepo = {
 	scope: 'project' | 'global';
 };
 
+async function assertRepoNameAvailable(name: string): Promise<void> {
+	const allRepos = await listRepos();
+	if (allRepos.some((r) => r.entry.name === name)) {
+		throw new Error(`Repo "${name}" already exists. Remove it first or choose a different name.`);
+	}
+}
+
 export async function addRepo(input: AddRepoInput): Promise<RepoEntry> {
 	const isGlobal = input.global ?? false;
 	const repsDir = isGlobal ? globalRepsDir() : projectRepsDir();
@@ -73,13 +80,7 @@ export async function addRepo(input: AddRepoInput): Promise<RepoEntry> {
 	}
 
 	RepoEntrySchema.parse(entry);
-
-	const allRepos = await listRepos();
-	if (allRepos.some((r) => r.entry.name === entry.name)) {
-		throw new Error(
-			`Repo "${entry.name}" already exists. Remove it first or choose a different name.`
-		);
-	}
+	await assertRepoNameAvailable(entry.name);
 
 	if (entry.type === 'local') {
 		const exists = await stat(entry.path)
@@ -91,7 +92,13 @@ export async function addRepo(input: AddRepoInput): Promise<RepoEntry> {
 	}
 
 	const reposDir = path.join(repsDir, 'repos');
-	await ensureMaterialized(entry, reposDir);
+	const materializedPath = await ensureMaterialized(entry, reposDir);
+	try {
+		await assertRepoNameAvailable(entry.name);
+	} catch (err) {
+		await Bun.$`rm -rf ${materializedPath}`;
+		throw err;
+	}
 
 	const config = await loadConfig(repsDir);
 	config.repos.push(entry);
@@ -113,12 +120,9 @@ export async function deleteRepo(name: string, opts: { global?: boolean }): Prom
 	config.repos.splice(index, 1);
 	await saveConfig(repsDir, config);
 
-	// Clean up cloned directory if it exists
+	// Clean up materialized repository path (directory or symlink).
 	const cloneDir = path.join(repsDir, 'repos', repoKey(name));
-	const cloneDirFile = Bun.file(cloneDir);
-	if (await cloneDirFile.exists()) {
-		await Bun.$`rm -rf ${cloneDir}`;
-	}
+	await Bun.$`rm -rf ${cloneDir}`;
 }
 
 export async function listRepos(): Promise<ScopedRepo[]> {
