@@ -146,7 +146,10 @@ Project-scoped:                Global:
     └── mylib/                     └── node/
 ```
 
-Repositories are cloned lazily — `reps add` only saves metadata; the actual `git clone` happens on the first `reps ask` invocation.
+`reps add` materializes repositories immediately:
+
+- Git repositories are cloned into `.reps/repos` (or `~/.reps/repos` for global scope).
+- Local repositories are linked into that same destination via a symbolic link.
 
 ## Development
 

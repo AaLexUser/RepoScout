@@ -12,7 +12,6 @@ function systemPrompt(): string {
 		'- read: Read file contents with line numbers',
 		'- grep: Search file contents using regex patterns',
 		'- glob: Find files matching glob patterns',
-		'- list: List directory contents',
 		'',
 		'Guidelines:',
 		'- Use glob to find relevant files first, then read them',

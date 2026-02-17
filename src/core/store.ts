@@ -1,6 +1,7 @@
 import os from 'node:os';
 import path from 'node:path';
 import { stat } from 'node:fs/promises';
+import { ensureMaterialized } from './clone.ts';
 import {
 	RepsConfigSchema,
 	RepoEntrySchema,
@@ -88,6 +89,9 @@ export async function addRepo(input: AddRepoInput): Promise<RepoEntry> {
 			throw new Error(`Directory does not exist: ${entry.path}`);
 		}
 	}
+
+	const reposDir = path.join(repsDir, 'repos');
+	await ensureMaterialized(entry, reposDir);
 
 	const config = await loadConfig(repsDir);
 	config.repos.push(entry);
