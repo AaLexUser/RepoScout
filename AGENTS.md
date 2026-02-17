@@ -167,6 +167,6 @@ export const fooCommand = new Command('foo')
 
 - **Simplicity-first** (Karpathy guidelines): no over-engineering.
 - **Schema-first data modeling:** Zod schemas are the source of truth.
-- **Lazy cloning:** `add` only writes config; `ask` triggers `ensureCloned()`.
+- **Eager materialization:** `add` materializes repos into `.reps/repos`; `ask` reuses that path.
 - **Dual scope:** project-level (`.reps/`) vs global (`~/.reps/`).
 - **Bun-native:** use Bun APIs over Node.js equivalents wherever possible.
